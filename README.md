@@ -9,19 +9,19 @@
 
 ## Codes and Models:
 
-### Requirement
+### Requirement:
 * **PyTorch 1.3.0, torchvision 0.4.1. The code is tested with python=3.6, cuda=9.0.**
 * **Matlab (For training/test data generation and performance evaluation)**
 
-### Datasets
+### Datasets:
 **We used the EPFL, HCInew, HCIold, INRIA and STFgantry datasets for training and test. Please first download our dataset via [Baidu Drive](https://pan.baidu.com/s/1mYQR6OBXoEKrOk0TjV85Yw) (key:7nzy) or [OneDrive](https://stuxidianeducn-my.sharepoint.com/:f:/g/personal/zyliang_stu_xidian_edu_cn/EpkUehGwOlFIuSSdadq9S4MBEeFkNGPD_DlzkBBmZaV_mA?e=FiUeiv), and place the 5 datasets to the folder **`./datasets/`**.**
 
-### Train
+### Train:
 * Run **`Generate_Data_for_Training.m`** to generate training data. The generated data will be saved in `./data_for_train/` (SR_5x5_2x, SR_5x5_4x).
 * Run `train.py` to perform network training.
 * Checkpoint will be saved to **`./log/`.
 
-### Test
+### Test:
 * Run `Generate_Data_for_Test.m` to generate test data. The generated data will be saved in `./data_for_test/` (SR_5x5_2x, SR_5x5_4x).
 * Run `test.py` to perform network inference.
 * The PSNR and SSIM values of each dataset will be saved to `./log/`.
