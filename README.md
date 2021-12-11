@@ -38,7 +38,7 @@
 ### Efficiency:
 <p align="center"> <img src="Figs/Efficiency-SSR.png" width="60%"> </p>
 
-### Performance w.r.t. Anggular Resolution:
+### Performance w.r.t. Angular Resolution:
 <p align="center"> <img src="Figs/AblationSSR-AngRes.png" width="60%"> </p>
 
 ### Angular Consistency:
