@@ -4,7 +4,7 @@
 **This is the PyTorch implementation of the spatial SR method in our paper "*Disentangling Light Fields for Super-Resolution and Disparity Estimation*". Please refer to our [paper](https://yingqianwang.github.io/) and [project page](https://yingqianwang.github.io/DistgLF) for details.**<br><br>
 
 ## Network Architecture:
-
+<p align="center"> <img src="Figs/DistgSSR.png" width="90%"> </p>
 <br><br>
 
 ## Codes and Models:
@@ -38,9 +38,11 @@
 * **Efficiency**
 <p align="center"> <img src="Figs/Efficiency-SSR.png" width="60%"> </p>
 
+* **Performance w.r.t. Anggular Resolution**
+<p align="center"> <img src="Figs/AblationSSR-AngRes.png" width="80%"> </p>
 
-* **Angular Consistency: we provide a demo video**
-<p align="center"> <a href="https://wyqdatabase.s3.us-west-1.amazonaws.com/LFT_video.mp4"><img src="Figs/LFT_video.png" width="60%"></a> </p>
+* **Angular Consistency:**
+<p align="center"> <a href="https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgLF-SpatialSR.mp4"><img src="Figs/AngCons-SSR.png" width="80%"></a> </p>
 
 
 
@@ -50,7 +52,7 @@
 @Article{DistgLF,
     author    = {Wang, Yingqian and Wang, Longguang and Wu, Gaochang and Yang, Jungang and An, Wei and Yu, Jingyi and Guo, Yulan},
     title     = {Disentangling Light Fields for Super-Resolution and Disparity Estimation},
-    journal   = {IEEE TPAMI (undergoing a major revision)}, 
+    journal   = {IEEE TPAMI (under review)}, 
     year      = {2022},   
 }
 ```
