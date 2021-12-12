@@ -26,7 +26,7 @@ Run `test.py` to perform a demo inference. Note that, the selected pretrained mo
 * Checkpoint will be saved to `./log/`.
 <br>
 
-### Test:
+## Test:
 * Run `test.py` to perform test on each dataset.
 * The PSNR and SSIM values of each dataset will be saved to `./log/`.
 <br>
