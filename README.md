@@ -37,10 +37,10 @@ Run `test.py` to perform a demo inference. Note that, the selected pretrained mo
 <p align="center"> <img src="https://raw.github.com/YingqianWang/DistgSSR/master/Figs/Visual-SSR.png" width="100%"> </p>
 
 ### Efficiency:
-<p align="center"> <img src="https://raw.github.com/YingqianWang/DistgSSR/master/Figs/Efficiency-SSR.png" width="60%"> </p>
+<p align="center"> <img src="https://raw.github.com/YingqianWang/DistgSSR/master/Figs/Efficiency-SSR.png" width="50%"> </p>
 
 ### Performance w.r.t. Angular Resolution:
-<p align="center"> <img src="https://raw.github.com/YingqianWang/DistgSSR/master/Figs/AblationSSR-AngRes.png" width="60%"> </p>
+<p align="center"> <img src="https://raw.github.com/YingqianWang/DistgSSR/master/Figs/AblationSSR-AngRes.png" width="50%"> </p>
 
 ### Angular Consistency:
 <p align="center"> <a href="https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgLF-SpatialSR.mp4"><img src="https://raw.github.com/YingqianWang/DistgSSR/master/Figs/AngCons-SSR.png" width="80%"></a> </p>
