@@ -16,17 +16,17 @@ This is the PyTorch implementation of the spatial SR method in our paper "Disent
 ### Download our pretrained models:
 |  **Angular Resolution** | **Upscaling Factor** | **Channel Depth** | **Download Link** |
 | :---------: |  :---------: | :----------: | :---------------: |
-|   **5×5**   |   **2×SR**   |    **64**    | [**DistgSSR_5x5_2xSR.pth.tar**](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_5x5_2xSR.pth.tar) |
-|   **5×5**   |   **4×SR**   |    **64**    | [**DistgSSR_5x5_4xSR.pth.tar**](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_5x5_4xSR.pth.tar) |
-|     5×5     |     2×SR     |      32      | [DistgSSR_5x5_2xSR_C32.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_5x5_2xSR_C32.pth.tar) |
-|     5×5     |     4×SR     |      32      | [DistgSSR_5x5_4xSR_C32.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_5x5_4xSR_C32.pth.tar) |
-|     2×2     |     2×SR     |      64      | [DistgSSR_2x2_2xSR.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_2x2_2xSR.pth.tar) |
-|     3×3     |     2×SR     |      64      | [DistgSSR_3x3_2xSR.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_3x3_2xSR.pth.tar) |
-|     4×4     |     2×SR     |      64      | [DistgSSR_4x4_2xSR.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_4x4_2xSR.pth.tar) |
-|     6×6     |     2×SR     |      64      | [DistgSSR_6x6_2xSR.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_6x6_2xSR.pth.tar) |
-|     7×7     |     2×SR     |      64      | [DistgSSR_7x7_2xSR.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_7x7_2xSR.pth.tar) |
-|     8×8     |     2×SR     |      64      | [DistgSSR_8x8_2xSR.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_8x8_2xSR.pth.tar) |
-|     9×9     |     2×SR     |      64      | [DistgSSR_9x9_2xSR.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_9x9_2xSR.pth.tar) |
+|   **5×5**   |   **2×SR**   |    **64**    | [**DistgSSR_2xSR_5x5.pth.tar**](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_2xSR_5x5.pth.tar) |
+|   **5×5**   |   **4×SR**   |    **64**    | [**DistgSSR_4xSR_5x5.pth.tar**](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_4xSR_5x5.pth.tar) |
+|     5×5     |     2×SR     |      32      | [DistgSSR_2xSR_5x5_C32.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_2xSR_5x5_C32.pth.tar) |
+|     5×5     |     4×SR     |      32      | [DistgSSR_4xSR_5x5_C32.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_4xSR_5x5_C32.pth.tar) |
+|     2×2     |     2×SR     |      64      | [DistgSSR_2xSR_2x2.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_2xSR_2x2.pth.tar) |
+|     3×3     |     2×SR     |      64      | [DistgSSR_2xSR_3x3.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_2xSR_3x3.pth.tar) |
+|     4×4     |     2×SR     |      64      | [DistgSSR_2xSR_4x4.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_2xSR_4x4.pth.tar) |
+|     6×6     |     2×SR     |      64      | [DistgSSR_2xSR_6x6.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_2xSR_6x6.pth.tar) |
+|     7×7     |     2×SR     |      64      | [DistgSSR_2xSR_7x7.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_2xSR_7x7.pth.tar) |
+|     8×8     |     2×SR     |      64      | [DistgSSR_2xSR_8x8.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_2xSR_8x8.pth.tar) |
+|     9×9     |     2×SR     |      64      | [DistgSSR_2xSR_9x9.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_2xSR_9x9.pth.tar) |
 
 
 
