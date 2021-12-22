@@ -47,7 +47,7 @@ This is the PyTorch implementation of the spatial SR method in our paper "Disent
 ## Results:
 
 ### Quantitative Results:
-<p align="center"> <img src="https://raw.github.com/YingqianWang/DistgSSR/master/Figs/Metric-SSR.png" width="100%"> </p>
+<p align="center"> <img src="https://raw.github.com/YingqianWang/DistgSSR/master/Figs/QuantitativeSSR.png" width="100%"> </p>
 
 ### Visual Comparisons:
 <p align="center"> <img src="https://raw.github.com/YingqianWang/DistgSSR/master/Figs/Visual-SSR.png" width="100%"> </p>
