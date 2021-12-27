@@ -14,7 +14,7 @@ This is the PyTorch implementation of the spatial SR method in our paper "Disent
 * Run `Generate_Data_for_Train.m` to generate training data. The generated data will be saved in `./Data/train_kxSR_AxA/`.
 * Run `Generate_Data_for_Test.m` to generate test data. The generated data will be saved in `./Data/test_kxSR_AxA/`.
 #### 4. Download our pretrained models:
-**We provide the models of each angular resolution (2×2 to 9×9) for 2×/4× SR. Download our models through the following links:**
+We provide the models of each angular resolution (2×2 to 9×9) for 2×/4× SR. Download our models through the following links:
 | **Upscaling Factor** |  **Angular Resolution** | **Channel Depth** | **Download Link** |
 | :---------: |  :---------: | :----------: | :---------------: |
 |    2×SR  |   5×5  |  32  | [DistgSSR_2xSR_5x5_C32.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_2xSR_5x5_C32.pth.tar) |
