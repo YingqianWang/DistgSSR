@@ -27,9 +27,9 @@ We provide the models of each angular resolution (2×2 to 9×9) for 2×/4× SR. 
 |    2×SR  |   8×8  |  64  | [DistgSSR_2xSR_8x8.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_2xSR_8x8.pth.tar) |
 |    2×SR  |   9×9  |  64  | [DistgSSR_2xSR_9x9.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_2xSR_9x9.pth.tar) |
 |    4×SR  |   5×5  |  32  | [DistgSSR_4xSR_5x5_C32.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_4xSR_5x5_C32.pth.tar) |
-|    4×SR  |   2×2  |  64  | Coming soon |
-|    4×SR  |   3×3  |  64  | Coming soon |
-|    4×SR  |   4×4  |  64  | Coming soon |
+|    4×SR  |   2×2  |  64  | [DistgSSR_4xSR_2x2.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_4xSR_2x2.pth.tar) |
+|    4×SR  |   3×3  |  64  | [DistgSSR_4xSR_3x3.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_4xSR_3x3.pth.tar) |
+|    4×SR  |   4×4  |  64  | [DistgSSR_4xSR_4x4.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_4xSR_4x4.pth.tar) |
 |    4×SR  |   5×5  |  64  | [**DistgSSR_4xSR_5x5.pth.tar**](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_4xSR_5x5.pth.tar) |
 |    4×SR  |   6×6  |  64  | Coming soon |
 |    4×SR  |   7×7  |  64  | Coming soon |
