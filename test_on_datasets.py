@@ -4,6 +4,7 @@ import scipy.io
 import torch.backends.cudnn as cudnn
 from utils.utils import *
 from model import Net
+from einops import rearrange
 
 
 def parse_args():
@@ -16,6 +17,7 @@ def parse_args():
     parser.add_argument('--crop', type=bool, default=True, help="LFs are cropped into patches to save GPU memory")
     parser.add_argument("--patchsize", type=int, default=64, help="LFs are cropped into patches to save GPU memory")
     parser.add_argument('--save_path', type=str, default='./Results/')
+    parser.add_argument("--minibatch_test", type=int, default=16, help="size of minibatch for inference")
 
     return parser.parse_args()
 
@@ -60,21 +62,25 @@ def valid(test_loader, test_name, net):
             patchsize = cfg.patchsize
             stride = patchsize // 2
             data = data.squeeze()
-            uh, vw = data.shape
-            h0, w0 = uh // cfg.angRes, vw // cfg.angRes
-            subLFin = LFdivide(data, cfg.angRes, patchsize, stride)  # numU, numV, h*angRes, w*angRes
+
+            ''' Crop LFs into Patches '''
+            subLFin = LFdivide(data, cfg.angRes, cfg.patchsize, cfg.patchsize // 2)
             numU, numV, H, W = subLFin.shape
-            subLFout = torch.zeros(numU, numV, cfg.angRes * patchsize * cfg.upfactor, cfg.angRes * patchsize * cfg.upfactor)
+            subLFin = rearrange(subLFin, 'n1 n2 a1h a2w -> (n1 n2) 1 a1h a2w')
+            subLFout = torch.zeros(numU * numV, 1, cfg.angRes * cfg.patchsize * cfg.upscale_factor,
+                                   cfg.angRes * cfg.patchsize * cfg.upscale_factor)
 
-            for u in range(numU):
-                for v in range(numV):
-                    tmp = subLFin[u, v, :, :].unsqueeze(0).unsqueeze(0)
-                    with torch.no_grad():
-                        torch.cuda.empty_cache()
-                        out = net(tmp.to(cfg.device))
-                        subLFout[u, v, :, :] = out.squeeze()
-
-            outLF = LFintegrate(subLFout, cfg.angRes, patchsize * cfg.upfactor, stride * cfg.upfactor, h0 * cfg.upfactor, w0 * cfg.upfactor)
+            ''' SR the Patches '''
+            mini_batch = cfg.minibatch_test
+            for i in range(0, numU * numV, mini_batch):
+                tmp = subLFin[i:min(i + mini_batch, numU * numV), :, :, :]
+                with torch.no_grad():
+                    net.eval()
+                    torch.cuda.empty_cache()
+                    out = net(tmp.to(cfg.device))
+                    subLFout[i:min(i + mini_batch, numU * numV), :, :, :] = out
+            subLFout = rearrange(subLFout, '(n1 n2) 1 a1h a2w -> n1 n2 a1h a2w', n1=numU, n2=numV)
+            outLF = LFintegrate(subLFout, cfg.angRes, patchsize * cfg.upfactor, stride * cfg.upfactor)
 
         psnr, ssim = cal_metrics(label.to(cfg.device), outLF, cfg.angRes)
         psnr_iter_test.append(psnr)
