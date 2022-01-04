@@ -17,6 +17,7 @@ def parse_args():
     parser.add_argument("--patchsize", type=int, default=128, help="LFs are cropped into patches to save GPU memory")
     parser.add_argument('--input_dir', type=str, default='./input/')
     parser.add_argument('--save_path', type=str, default='./output/')
+    parser.add_argument("--minibatch_test", type=int, default=16, help="size of minibatch for inference")
 
     return parser.parse_args()
 
@@ -61,21 +62,25 @@ def demo_test(cfg):
         else:
             patchsize = cfg.patchsize
             stride = patchsize // 2
-            uh, vw = data.shape
-            h0, w0 = uh // cfg.angRes, vw // cfg.angRes
-            subLFin = LFdivide(data, cfg.angRes, patchsize, stride)  # numU, numV, h*angRes, w*angRes
+
+            ''' Crop LFs into Patches '''
+            subLFin = LFdivide(data, cfg.angRes, cfg.patchsize, cfg.patchsize // 2)
             numU, numV, H, W = subLFin.shape
-            subLFout = torch.zeros(numU, numV, cfg.angRes * patchsize * cfg.upfactor, cfg.angRes * patchsize * cfg.upfactor)
+            subLFin = rearrange(subLFin, 'n1 n2 a1h a2w -> (n1 n2) 1 a1h a2w')
+            subLFout = torch.zeros(numU * numV, 1, cfg.angRes * cfg.patchsize * cfg.upscale_factor,
+                                   cfg.angRes * cfg.patchsize * cfg.upscale_factor)
 
-            for u in range(numU):
-                for v in range(numV):
-                    tmp = subLFin[u, v, :, :].unsqueeze(0).unsqueeze(0)
-                    with torch.no_grad():
-                        torch.cuda.empty_cache()
-                        out = net(tmp.to(cfg.device))
-                        subLFout[u, v, :, :] = out.squeeze()
-
-            lf_y_sr = LFintegrate(subLFout, cfg.angRes, patchsize * cfg.upfactor, stride * cfg.upfactor, h0 * cfg.upfactor, w0 * cfg.upfactor)
+            ''' SR the Patches '''
+            mini_batch = cfg.minibatch_test
+            for i in range(0, numU * numV, mini_batch):
+                tmp = subLFin[i:min(i + mini_batch, numU * numV), :, :, :]
+                with torch.no_grad():
+                    net.eval()
+                    torch.cuda.empty_cache()
+                    out = net(tmp.to(cfg.device))
+                    subLFout[i:min(i + mini_batch, numU * numV), :, :, :] = out
+            subLFout = rearrange(subLFout, '(n1 n2) 1 a1h a2w -> n1 n2 a1h a2w', n1=numU, n2=numV)
+            lf_y_sr = LFintegrate(subLFout, cfg.angRes, patchsize * cfg.upfactor, stride * cfg.upfactor)
 
         lf_y_sr = 255 * lf_y_sr.data.cpu().numpy()
         lf_rgb_sr[:, :, :, :, 0] = 1.164383 * (lf_y_sr - 16) + 1.596027 * (lf_cr_sr - 128)
