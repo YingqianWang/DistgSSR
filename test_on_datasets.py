@@ -4,7 +4,6 @@ import scipy.io
 import torch.backends.cudnn as cudnn
 from utils.utils import *
 from model import Net
-from einops import rearrange
 
 
 def parse_args():
@@ -16,8 +15,8 @@ def parse_args():
     parser.add_argument('--testset_dir', type=str, default='../Data/Test_2xSR_5x5/')
     parser.add_argument('--crop', type=bool, default=True, help="LFs are cropped into patches to save GPU memory")
     parser.add_argument("--patchsize", type=int, default=64, help="LFs are cropped into patches to save GPU memory")
+    parser.add_argument("--minibatch", type=int, default=12, help="LFs are cropped into patches to save GPU memory")
     parser.add_argument('--save_path', type=str, default='./Results/')
-    parser.add_argument("--minibatch_test", type=int, default=16, help="size of minibatch for inference")
 
     return parser.parse_args()
 
@@ -51,36 +50,37 @@ def valid(test_loader, test_name, net):
     psnr_iter_test = []
     ssim_iter_test = []
     for idx_iter, (data, label) in (enumerate(test_loader)):
-        data = data.to(cfg.device)  # numU, numV, h*angRes, w*angRes
+        data = data.to(cfg.device)
         label = label.squeeze()
 
         if cfg.crop == False:
-            with torch.no_grad():
-                outLF = net(data.unsqueeze(0).unsqueeze(0).to(cfg.device))
-                outLF = outLF.squeeze()
+            outLF = net(data.to(cfg.device))
+            outLF = outLF.squeeze()
+
         else:
+            lf_lr = rearrange(data.squeeze(), '(u h) (v w) -> u v h w', u=cfg.angRes, v=cfg.angRes)
             patchsize = cfg.patchsize
             stride = patchsize // 2
-            data = data.squeeze()
+            sub_lfs = LFdivide(lf_lr, patchsize, stride)
 
-            ''' Crop LFs into Patches '''
-            subLFin = LFdivide(data, cfg.angRes, cfg.patchsize, cfg.patchsize // 2)
-            numU, numV, H, W = subLFin.shape
-            subLFin = rearrange(subLFin, 'n1 n2 a1h a2w -> (n1 n2) 1 a1h a2w')
-            subLFout = torch.zeros(numU * numV, 1, cfg.angRes * cfg.patchsize * cfg.upscale_factor,
-                                   cfg.angRes * cfg.patchsize * cfg.upscale_factor)
+            n1, n2, u, v, c, h, w = sub_lfs.shape
+            sub_lfs = rearrange(sub_lfs, 'n1 n2 u v c h w -> (n1 n2) c (u h) (v w)')
+            mini_batch = cfg.minibatch
+            num_inference = (n1 * n2) // mini_batch
+            with torch.no_grad():
+                out_lfs = []
+                for idx_inference in range(num_inference):
+                    input_lfs = sub_lfs[idx_inference * mini_batch: (idx_inference + 1) * mini_batch, :, :, :]
+                    out_lfs.append(net(input_lfs.to(cfg.device)))
+                if (n1 * n2) % mini_batch:
+                    input_lfs = sub_lfs[(idx_inference + 1) * mini_batch:, :, :, :]
+                    out_lfs.append(net(input_lfs.to(cfg.device)))
 
-            ''' SR the Patches '''
-            mini_batch = cfg.minibatch_test
-            for i in range(0, numU * numV, mini_batch):
-                tmp = subLFin[i:min(i + mini_batch, numU * numV), :, :, :]
-                with torch.no_grad():
-                    net.eval()
-                    torch.cuda.empty_cache()
-                    out = net(tmp.to(cfg.device))
-                    subLFout[i:min(i + mini_batch, numU * numV), :, :, :] = out
-            subLFout = rearrange(subLFout, '(n1 n2) 1 a1h a2w -> n1 n2 a1h a2w', n1=numU, n2=numV)
-            outLF = LFintegrate(subLFout, cfg.angRes, patchsize * cfg.upfactor, stride * cfg.upfactor)
+            out_lfs = torch.cat(out_lfs, dim=0)
+            out_lfs = rearrange(out_lfs, '(n1 n2) c (u h) (v w) -> n1 n2 u v c h w', n1=n1, n2=n2, u=cfg.angRes,
+                                v=cfg.angRes)
+            outLF = LFintegrate(out_lfs, patchsize * cfg.upfactor, patchsize * cfg.upfactor // 2)
+            outLF = outLF[:, :, 0: lf_lr.shape[2] * cfg.upfactor, 0: lf_lr.shape[3] * cfg.upfactor]
 
         psnr, ssim = cal_metrics(label.to(cfg.device), outLF, cfg.angRes)
         psnr_iter_test.append(psnr)
@@ -90,7 +90,7 @@ def valid(test_loader, test_name, net):
         if not (os.path.exists(save_path + '/' + test_name)):
             os.makedirs(save_path + '/' + test_name)
         scipy.io.savemat(save_path + '/' + test_name + '/' + test_loader.dataset.file_list[idx_iter][0:-3] + '.mat',
-                         {'LF': outLF.numpy()})
+                         {'LF': outLF.cpu().numpy()})
         pass
 
     psnr_epoch_test = float(np.array(psnr_iter_test).mean())

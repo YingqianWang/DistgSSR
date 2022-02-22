@@ -1,19 +1,20 @@
 import time
 import argparse
+from torch.autograd import Variable
 import torch.backends.cudnn as cudnn
 from tqdm import tqdm
 from utils.utils import *
 from model import Net
-from einops import rearrange
 
 
 # Settings
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--device', type=str, default='cuda:0')
-    parser.add_argument('--num_workers', type=int, default=8)
+    parser.add_argument('--parallel', type=bool, default=False)
+    parser.add_argument('--num_workers', type=int, default=4)
     parser.add_argument("--angRes", type=int, default=5, help="angular resolution")
-    parser.add_argument("--upscale_factor", type=int, default=2, help="upscale factor")
+    parser.add_argument("--upfactor", type=int, default=2, help="upscale factor")
     parser.add_argument('--model_name', type=str, default='DistgSSR_2xSR')
     parser.add_argument('--trainset_dir', type=str, default='../Data/Train_2xSR_5x5/')
     parser.add_argument('--testset_dir', type=str, default='../Data/Test_2xSR_5x5/')
@@ -25,31 +26,33 @@ def parse_args():
     parser.add_argument('--gamma', type=float, default=0.5, help='learning rate decaying factor')
 
     parser.add_argument('--crop', type=bool, default=True, help="LFs are cropped into patches to save GPU memory")
-    parser.add_argument("--patchsize", type=int, default=128, help="")
-    parser.add_argument("--stride", type=int, default=64, help="")
-    parser.add_argument("--minibatch_test", type=int, default=16, help="size of minibatch for inference")
+    parser.add_argument("--patchsize", type=int, default=64, help="")
+    parser.add_argument("--minibatch", type=int, default=12, help="LFs are cropped into patches to save GPU memory")
 
-    parser.add_argument('--load_pretrain', type=bool, default=True)
-    parser.add_argument('--model_path', type=str, default='./log/DistgSSR_2xSR_5x5.pth.tar')
+    parser.add_argument('--load_pretrain', type=bool, default=False)
+    parser.add_argument('--model_path', type=str, default='./log/DistgSSR_2xSR_5x5_epoch_1.pth.tar')
 
     return parser.parse_args()
 
 
 def train(cfg, train_loader, test_Names, test_loaders):
 
-    net = Net(cfg.angRes, cfg.upscale_factor)
+    net = Net(cfg.angRes, cfg.upfactor)
+    net.to(cfg.device)
     cudnn.benchmark = True
     epoch_state = 0
 
     if cfg.load_pretrain:
         if os.path.isfile(cfg.model_path):
-            model = torch.load(cfg.model_path, map_location='cpu')
+            model = torch.load(cfg.model_path, map_location={'cuda:0': cfg.device})
             net.load_state_dict(model['state_dict'])
             epoch_state = model["epoch"]
         else:
             print("=> no model found at '{}'".format(cfg.load_model))
 
-    net.to(cfg.device)
+    if cfg.parallel:
+        net = torch.nn.DataParallel(net, device_ids=[0, 1])
+
     criterion_Loss = torch.nn.L1Loss().to(cfg.device)
     optimizer = torch.optim.Adam([paras for paras in net.parameters() if paras.requires_grad == True], lr=cfg.lr)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=cfg.n_steps, gamma=cfg.gamma)
@@ -59,9 +62,8 @@ def train(cfg, train_loader, test_Names, test_loaders):
 
     for idx_epoch in range(epoch_state, cfg.n_epochs):
         for idx_iter, (data, label) in tqdm(enumerate(train_loader), total=len(train_loader)):
-            data, label = data.to(cfg.device), label.to(cfg.device)
-            out = net(data)
-            loss = criterion_Loss(out, label)
+            out = net(data.to(cfg.device))
+            loss = criterion_Loss(out, label.to(cfg.device))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -70,10 +72,16 @@ def train(cfg, train_loader, test_Names, test_loaders):
         if idx_epoch % 1 == 0:
             loss_list.append(float(np.array(loss_epoch).mean()))
             print(time.ctime()[4:-5] + ' Epoch----%5d, loss---%f' % (idx_epoch + 1, float(np.array(loss_epoch).mean())))
-            save_ckpt({
-                'epoch': idx_epoch + 1,
-                'state_dict': net.state_dict(),
-            }, save_path='./log/', filename=cfg.model_name + '_epoch_' + str(idx_epoch + 1) + '.pth.tar')
+            if cfg.parallel:
+                save_ckpt({
+                    'epoch': idx_epoch + 1,
+                    'state_dict': net.module.state_dict(),
+                }, save_path='./log/', filename=cfg.model_name + '_epoch_' + str(idx_epoch + 1) + '.pth.tar')
+            else:
+                save_ckpt({
+                    'epoch': idx_epoch + 1,
+                    'state_dict': net.state_dict(),
+                }, save_path='./log/', filename=cfg.model_name + '_epoch_' + str(idx_epoch + 1) + '.pth.tar')
             loss_epoch = []
 
         ''' evaluation '''
@@ -97,7 +105,7 @@ def valid(test_loader, net):
     psnr_iter_test = []
     ssim_iter_test = []
     for idx_iter, (data, label) in (enumerate(test_loader)):
-        data = data.squeeze().to(cfg.device)
+        data = data.squeeze().to(cfg.device)  # numU, numV, h*angRes, w*angRes
         label = label.squeeze().to(cfg.device)
 
         if cfg.crop == False:
@@ -105,26 +113,31 @@ def valid(test_loader, net):
                 outLF = net(data.unsqueeze(0).unsqueeze(0).to(cfg.device))
                 outLF = outLF.squeeze()
         else:
-            ''' Crop LFs into Patches '''
-            subLFin = LFdivide(data, cfg.angRes, cfg.patchsize, cfg.patchsize // 2)
-            numU, numV, H, W = subLFin.shape
-            subLFin = rearrange(subLFin, 'n1 n2 a1h a2w -> (n1 n2) 1 a1h a2w')
-            subLFout = torch.zeros(numU * numV, 1, cfg.angRes * cfg.patchsize * cfg.upscale_factor,
-                                   cfg.angRes * cfg.patchsize * cfg.upscale_factor)
+            lf_lr = rearrange(data.squeeze(), '(u h) (v w) -> u v h w', u=cfg.angRes, v=cfg.angRes)
+            patchsize = cfg.patchsize
+            stride = patchsize // 2
+            sub_lfs = LFdivide(lf_lr, patchsize, stride)
 
-            ''' SR the Patches '''
-            mini_batch = cfg.minibatch_test
-            for i in range(0, numU * numV, mini_batch):
-                tmp = subLFin[i:min(i+mini_batch, numU * numV), :, :, :]
-                with torch.no_grad():
-                    net.eval()
-                    torch.cuda.empty_cache()
-                    out = net(tmp.to(cfg.device))
-                    subLFout[i:min(i+mini_batch, numU * numV), :, :, :] = out
-            subLFout = rearrange(subLFout, '(n1 n2) 1 a1h a2w -> n1 n2 a1h a2w', n1=numU, n2=numV)
-            outLF = LFintegrate(subLFout, cfg.angRes, cfg.patchsize * cfg.upscale_factor, cfg.stride * cfg.upscale_factor)
+            n1, n2, u, v, c, h, w = sub_lfs.shape
+            sub_lfs = rearrange(sub_lfs, 'n1 n2 u v c h w -> (n1 n2) c (u h) (v w)')
+            mini_batch = cfg.minibatch
+            num_inference = (n1 * n2) // mini_batch
+            with torch.no_grad():
+                out_lfs = []
+                for idx_inference in range(num_inference):
+                    input_lfs = sub_lfs[idx_inference * mini_batch: (idx_inference + 1) * mini_batch, :, :, :]
+                    out_lfs.append(net(input_lfs.to(cfg.device)))
+                if (n1 * n2) % mini_batch:
+                    input_lfs = sub_lfs[(idx_inference + 1) * mini_batch:, :, :, :]
+                    out_lfs.append(net(input_lfs.to(cfg.device)))
 
-        psnr, ssim = cal_metrics(label, outLF, cfg.angRes)
+            out_lfs = torch.cat(out_lfs, dim=0)
+            out_lfs = rearrange(out_lfs, '(n1 n2) c (u h) (v w) -> n1 n2 u v c h w', n1=n1, n2=n2, u=cfg.angRes,
+                                v=cfg.angRes)
+            outLF = LFintegrate(out_lfs, patchsize * cfg.upfactor, patchsize * cfg.upfactor // 2)
+            outLF = outLF[:, :, 0: lf_lr.shape[2] * cfg.upfactor, 0: lf_lr.shape[3] * cfg.upfactor]
+
+        psnr, ssim = cal_metrics(label.to(cfg.device), outLF, cfg.angRes)
         psnr_iter_test.append(psnr)
         ssim_iter_test.append(ssim)
         pass

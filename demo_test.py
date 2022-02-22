@@ -12,12 +12,12 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--device', type=str, default='cuda:0')
     parser.add_argument("--angRes", type=int, default=5, help="angular resolution")
-    parser.add_argument("--upfactor", type=int, default=2, help="upscale factor")
+    parser.add_argument("--upfactor", type=int, default=4, help="upscale factor")
     parser.add_argument('--crop', type=bool, default=True, help="LFs are cropped into patches to save GPU memory")
-    parser.add_argument("--patchsize", type=int, default=128, help="LFs are cropped into patches to save GPU memory")
+    parser.add_argument("--patchsize", type=int, default=32, help="LFs are cropped into patches to save GPU memory")
+    parser.add_argument("--minibatch", type=int, default=20, help="LFs are cropped into patches to save GPU memory")
     parser.add_argument('--input_dir', type=str, default='./input/')
     parser.add_argument('--save_path', type=str, default='./output/')
-    parser.add_argument("--minibatch_test", type=int, default=16, help="size of minibatch for inference")
 
     return parser.parse_args()
 
@@ -52,35 +52,35 @@ def demo_test(cfg):
                 lf_cb_sr[u, v, :, :] = imresize(lf_cb_lr[u, v, :, :], cfg.upfactor)
                 lf_cr_sr[u, v, :, :] = imresize(lf_cr_lr[u, v, :, :], cfg.upfactor)
 
-        data = rearrange(lf_y_lr, 'u v h w -> (u h) (v w)')
-        data = torch.from_numpy(data) / 255.0
+        data = torch.from_numpy(lf_y_lr) / 255.0
 
         if cfg.crop == False:
+            data = rearrange(data, 'u v h w -> (u h) (v w)')
             lf_y_sr = net(data.squeeze().to(cfg.device))
             lf_y_sr = lf_y_sr.squeeze()
 
         else:
             patchsize = cfg.patchsize
             stride = patchsize // 2
+            sub_lfs = LFdivide(data, patchsize, stride)
 
-            ''' Crop LFs into Patches '''
-            subLFin = LFdivide(data, cfg.angRes, cfg.patchsize, cfg.patchsize // 2)
-            numU, numV, H, W = subLFin.shape
-            subLFin = rearrange(subLFin, 'n1 n2 a1h a2w -> (n1 n2) 1 a1h a2w')
-            subLFout = torch.zeros(numU * numV, 1, cfg.angRes * cfg.patchsize * cfg.upscale_factor,
-                                   cfg.angRes * cfg.patchsize * cfg.upscale_factor)
+            n1, n2, u, v, c, h, w = sub_lfs.shape
+            sub_lfs = rearrange(sub_lfs, 'n1 n2 u v c h w -> (n1 n2) c (u h) (v w)')
+            mini_batch = cfg.minibatch
+            num_inference = (n1 * n2) // mini_batch
+            with torch.no_grad():
+                out_lfs = []
+                for idx_inference in range(num_inference):
+                    input_lfs = sub_lfs[idx_inference * mini_batch: (idx_inference + 1) * mini_batch, :, :, :]
+                    out_lfs.append(net(input_lfs.to(cfg.device)))
+                if (n1 * n2) % mini_batch:
+                    input_lfs = sub_lfs[(idx_inference + 1) * mini_batch:, :, :, :]
+                    out_lfs.append(net(input_lfs.to(cfg.device)))
 
-            ''' SR the Patches '''
-            mini_batch = cfg.minibatch_test
-            for i in range(0, numU * numV, mini_batch):
-                tmp = subLFin[i:min(i + mini_batch, numU * numV), :, :, :]
-                with torch.no_grad():
-                    net.eval()
-                    torch.cuda.empty_cache()
-                    out = net(tmp.to(cfg.device))
-                    subLFout[i:min(i + mini_batch, numU * numV), :, :, :] = out
-            subLFout = rearrange(subLFout, '(n1 n2) 1 a1h a2w -> n1 n2 a1h a2w', n1=numU, n2=numV)
-            lf_y_sr = LFintegrate(subLFout, cfg.angRes, patchsize * cfg.upfactor, stride * cfg.upfactor)
+            out_lfs = torch.cat(out_lfs, dim=0)
+            out_lfs = rearrange(out_lfs, '(n1 n2) c (u h) (v w) -> n1 n2 u v c h w', n1=n1, n2=n2, u=cfg.angRes, v=cfg.angRes)
+            outLF = LFintegrate(out_lfs, patchsize * cfg.upfactor, patchsize * cfg.upfactor // 2)
+            lf_y_sr = outLF[:, :, 0: data.shape[2] * cfg.upfactor, 0: data.shape[3] * cfg.upfactor]
 
         lf_y_sr = 255 * lf_y_sr.data.cpu().numpy()
         lf_rgb_sr[:, :, :, :, 0] = 1.164383 * (lf_y_sr - 16) + 1.596027 * (lf_cr_sr - 128)
