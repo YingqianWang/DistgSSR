@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 import torch
 import numpy as np
 import h5py
+from einops import rearrange
 #import scipy.io as io
-#import torch.nn.functional as F
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from skimage import metrics
 
@@ -132,35 +133,49 @@ def augmentation(data, label):
         label = label.transpose(1, 0)
     return data, label
 
+def ImageExtend(Im, bdr):
+    [_, _, h, w] = Im.size()
+    Im_lr = torch.flip(Im, dims=[-1])
+    Im_ud = torch.flip(Im, dims=[-2])
+    Im_diag = torch.flip(Im, dims=[-1, -2])
 
-def LFdivide(data, angRes, patch_size, stride):
-    data = data
-    if data.dim() == 2:
-        data = rearrange(data, '(a1 h) (a2 w) -> (a1 a2) 1 h w', a1=angRes, a2=angRes)
-        pass
-    [_, _, h0, w0] = data.size()
+    Im_up = torch.cat((Im_diag, Im_ud, Im_diag), dim=-1)
+    Im_mid = torch.cat((Im_lr, Im, Im_lr), dim=-1)
+    Im_down = torch.cat((Im_diag, Im_ud, Im_diag), dim=-1)
+    Im_Ext = torch.cat((Im_up, Im_mid, Im_down), dim=-2)
+    Im_out = Im_Ext[:, :, h - bdr[0]: 2 * h + bdr[1], w - bdr[2]: 2 * w + bdr[3]]
+
+    return Im_out
+
+
+def LFdivide(lf, patch_size, stride):
+    if lf.dim() == 4:
+        U, V, H, W = lf.shape
+        data = rearrange(lf, 'u v h w -> (u v) 1 h w')
+    elif lf.dim() == 5:
+        U, V, _, H, W = lf.shape
+        data = rearrange(lf, 'u v c h w -> (u v) c h w')
 
     bdr = (patch_size - stride) // 2
-    numU = (h0 + bdr * 2 - 1) // stride
-    numV = (w0 + bdr * 2 - 1) // stride
-    pad = torch.nn.ReflectionPad2d(padding=(bdr, bdr+stride-1, bdr, bdr+stride-1))
-    data = pad(data)
-    subLF = F.unfold(data, kernel_size=patch_size, stride=stride)
-    subLF = rearrange(subLF, '(a1 a2) (h w) (n1 n2) -> n1 n2 (a1 h) (a2 w)',
-                      a1=angRes, a2=angRes, h=patch_size, w=patch_size, n1=numU, n2=numV)
+    numU = (H + bdr * 2 - 1) // stride
+    numV = (W + bdr * 2 - 1) // stride
+    data_pad = ImageExtend(data, [bdr, bdr + stride - 1, bdr, bdr + stride - 1])
+    subLF = F.unfold(data_pad, kernel_size=patch_size, stride=stride)
+    subLF = rearrange(subLF, '(u v) (c h w) (n1 n2) -> n1 n2 u v c h w',
+                      n1=numU, n2=numV, u=U, v=V, h=patch_size, w=patch_size)
 
     return subLF
 
 
-def LFintegrate(subLF, angRes, pz, stride):
-    if subLF.dim() == 4:
-        subLF = rearrange(subLF, 'n1 n2 (a1 h) (a2 w) -> n1 n2 a1 a2 h w', a1=angRes, a2=angRes)
-        pass
-    bdr = (pz - stride) // 2
-    outLF = subLF[:, :, :, :, bdr:bdr+stride, bdr:bdr+stride]
-    outLF = rearrange(outLF, 'n1 n2 a1 a2 h w -> a1 a2 (n1 h) (n2 w)')
+def LFintegrate(subLFs, patch_size, stride):
+    if subLFs.dim() == 6: # n1, n2, u, v, h, w
+        subLFs = subLFs.unsqueeze(4) #n1, n2, u, v, c, h, w
 
-    return outLF
+    bdr = (patch_size - stride) // 2
+    outLF = subLFs[:, :, :, :, :, bdr:bdr+stride, bdr:bdr+stride]
+    outLF = rearrange(outLF, 'n1 n2 u v c h w -> u v c (n1 h) (n2 w)')
+
+    return outLF.squeeze()
 
 
 def cal_psnr(img1, img2):
