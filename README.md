@@ -76,7 +76,7 @@ We provide the models of each angular resolution (2×2 to 9×9) for 2×/4× SR. 
 @Article{DistgLF,
     author    = {Wang, Yingqian and Wang, Longguang and Wu, Gaochang and Yang, Jungang and An, Wei and Yu, Jingyi and Guo, Yulan},
     title     = {Disentangling Light Fields for Super-Resolution and Disparity Estimation},
-    journal   = {IEEE TPAMI}, 
+    journal   = {IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
     year      = {2022},   
 }
 ```
