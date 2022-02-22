@@ -4,6 +4,10 @@
 
 This is the PyTorch implementation of the spatial SR method in our paper "Disentangling Light Fields for Super-Resolution and Disparity Estimation". Please refer to our [paper](https://yingqianwang.github.io/) and [project page](https://yingqianwang.github.io/DistgLF) for details.<br>
 
+## News and Updates:
+* 2022-02-22: Our DistgSSR has been merged into the repository [*BasicLFSR*](https://github.com/ZhengyuLiang24/BasicLFSR).  [*BasicLFSR*](https://github.com/ZhengyuLiang24/BasicLFSR) is an open-source and easy-to-use toolbox for LF image SR. A number of milestone and state-of-the-art methods have been implemented (retrained) in a unified framework in [*BasicLFSR*](https://github.com/ZhengyuLiang24/BasicLFSR).
+* 2022-02-16: Our paper "Disentangling Light Fields for Super-Resolution and Disparity Estimation" is accepted by IEEE TPAMI.
+
 ## Preparation:
 #### 1. Requirement:
 * PyTorch 1.3.0, torchvision 0.4.1. The code is tested with python=3.6, cuda=9.0.
