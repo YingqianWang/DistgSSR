@@ -5,6 +5,8 @@
 This is the PyTorch implementation of the spatial SR method in our paper "Disentangling Light Fields for Super-Resolution and Disparity Estimation". Please refer to our [paper](https://yingqianwang.github.io/) and [project page](https://yingqianwang.github.io/DistgLF) for details.<br>
 
 ## News and Updates:
+* 2022-02-22: Optimize `LFdivide` and `LFintegrate`, and modify our codes to enable inference with a batch of patches.
+* 2022-02-22: Checkpoints `DistgSSR_4xSR_6x6.pth.tar` and `DistgSSR_4xSR_7x7.pth.tar` are available.
 * 2022-02-22: Our DistgSSR has been added into the repository [*BasicLFSR*](https://github.com/ZhengyuLiang24/BasicLFSR).  [*BasicLFSR*](https://github.com/ZhengyuLiang24/BasicLFSR) is an open-source and easy-to-use toolbox for LF image SR. A number of milestone and state-of-the-art methods have been implemented (retrained) in a unified framework in [*BasicLFSR*](https://github.com/ZhengyuLiang24/BasicLFSR).
 * 2022-02-16: Our paper is accepted by IEEE TPAMI.
 
@@ -35,8 +37,8 @@ We provide the models of each angular resolution (2×2 to 9×9) for 2×/4× SR. 
 |    4×SR  |   3×3  |  64  | [DistgSSR_4xSR_3x3.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_4xSR_3x3.pth.tar) |
 |    4×SR  |   4×4  |  64  | [DistgSSR_4xSR_4x4.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_4xSR_4x4.pth.tar) |
 |    4×SR  |   5×5  |  64  | [**DistgSSR_4xSR_5x5.pth.tar**](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_4xSR_5x5.pth.tar) |
-|    4×SR  |   6×6  |  64  | Coming soon |
-|    4×SR  |   7×7  |  64  | Coming soon |
+|    4×SR  |   6×6  |  64  | [DistgSSR_4xSR_6x6.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_4xSR_6x6.pth.tar) |
+|    4×SR  |   7×7  |  64  | [DistgSSR_4xSR_7x7.pth.tar](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgSSR_4xSR_7x7.pth.tar) |
 |    4×SR  |   8×8  |  64  | Coming soon |
 |    4×SR  |   9×9  |  64  | Coming soon |
 
