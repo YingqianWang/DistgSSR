@@ -7,7 +7,7 @@ This is the PyTorch implementation of the spatial SR method in our paper "Disent
 ## News and Updates:
 * 2022-02-22: Optimize `LFdivide` and `LFintegrate`, and modify our codes to enable inference with a batch of patches.
 * 2022-02-22: Checkpoints `DistgSSR_4xSR_6x6.pth.tar` and `DistgSSR_4xSR_7x7.pth.tar` are available.
-* 2022-02-22: Our DistgSSR has been added into the repository [*BasicLFSR*](https://github.com/ZhengyuLiang24/BasicLFSR).  [*BasicLFSR*](https://github.com/ZhengyuLiang24/BasicLFSR) is an open-source and easy-to-use toolbox for LF image SR. A number of milestone and state-of-the-art methods have been implemented (retrained) in a unified framework in [*BasicLFSR*](https://github.com/ZhengyuLiang24/BasicLFSR).
+* 2022-02-22: Our DistgSSR has been added into the repository [*BasicLFSR*](https://github.com/ZhengyuLiang24/BasicLFSR).
 * 2022-02-16: Our paper is accepted by IEEE TPAMI.
 
 ## Preparation:
