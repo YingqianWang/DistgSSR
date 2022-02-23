@@ -2,7 +2,7 @@
 <br>
 <p align="center"> <img src="https://raw.github.com/YingqianWang/DistgSSR/master/Figs/DistgSSR.png" width="90%"> </p>
 
-This is the PyTorch implementation of the spatial SR method in our paper "Disentangling Light Fields for Super-Resolution and Disparity Estimation". Please refer to our [paper](https://yingqianwang.github.io/) and [project page](https://yingqianwang.github.io/DistgLF) for details.<br>
+This is the PyTorch implementation of the spatial SR method in our paper "Disentangling Light Fields for Super-Resolution and Disparity Estimation". Please refer to our [paper](https://arxiv.org/pdf/2202.10603.pdf) and [project page](https://yingqianwang.github.io/DistgLF) for details.<br>
 
 ## News and Updates:
 * 2022-02-22: Optimize `LFdivide` and `LFintegrate`, and modify our codes to enable inference with a batch of patches.
