@@ -72,7 +72,7 @@ We provide the models of each angular resolution (2×2 to 9×9) for 2×/4× SR. 
 
 ### Angular Consistency:
 
-<p align="center"> <a href="[https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgLF-AngularSR.mp4](https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgLF-SpatialSR.mp4)"><img src="https://raw.github.com/YingqianWang/DistgSSR/master/Figs/AngCons-SSR.png" width="80%"></a> </p>
+<p align="center"> <a href="https://wyqdatabase.s3.us-west-1.amazonaws.com/DistgLF-SpatialSR.mp4"><img src="https://raw.github.com/YingqianWang/DistgSSR/master/Figs/AngCons-SSR.png" width="80%"></a> </p>
 
 
 ## Citiation
